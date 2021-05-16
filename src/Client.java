@@ -18,8 +18,11 @@ class Client implements Runnable {
         this.server = server;
     }
 
-    public void recieve(String message){
+    public void recievedMessage(String message){
         out.println(message);
+    }
+    public void sendConfirmation(String timestamp){
+        out.println("Send by you at"+timestamp);
     }
 
     public void run() {
@@ -34,7 +37,7 @@ class Client implements Runnable {
             this.nickname = in.nextLine();
             out.println("Wellcome to the chat "+this.nickname);
             String input = in.nextLine();
-            while (!input.equals("bye")) {
+            while (!input.equals("!quit")) {
                 server.sendAll(input,this);
                 input = in.nextLine();
             }

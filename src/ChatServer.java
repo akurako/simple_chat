@@ -1,7 +1,9 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 
 public class ChatServer {
@@ -12,9 +14,19 @@ public class ChatServer {
         serversocket = new ServerSocket(1234);
     }
 
+    public String getTimestamp() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat timestamp = new SimpleDateFormat("HH:mm:ss");
+        return "[" + timestamp.format(calendar.getTime()) + "]";
+    }
+
     public void sendAll(String message, Client sender) {
         for (Client client : clients) {
-            client.recieve(sender.nickname + ": " + message);
+            if (client == sender) {
+                client.sendConfirmation(getTimestamp());
+            } else {
+                client.recievedMessage(getTimestamp() + sender.nickname + ": " + message);
+            }
         }
     }
 
