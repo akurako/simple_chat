@@ -40,7 +40,7 @@ class Client implements Runnable {
             out.println("Welcome to the chat " + this.nickname);
 
             while (activeChannel == null) {
-                out.println("Select channel " + server.getChannelsList());
+                out.println("Select channel: " + server.getChannelsList());
                 server.findChannelByName(this, in.nextLine());
             }
             input = in.nextLine();
@@ -48,7 +48,7 @@ class Client implements Runnable {
 //                case "!quit":
 //            }
             while (!input.equals("!quit")) {
-                server.sendToAll(input, this);
+                server.sendToChannel(input, this,activeChannel);
                 input = in.nextLine();
             }
             socket.close();

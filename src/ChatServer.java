@@ -12,36 +12,42 @@ public class ChatServer {
     ArrayList<Channel> active_channels = new ArrayList<>();
 
 
-
     public ChatServer() throws IOException {
         serversocket = new ServerSocket(1234);
-        active_channels.add(new Channel("Main"));
+        active_channels.add(new Channel("#Main"));
+        active_channels.add(new Channel("#2nd"));
     }
 
-    public void findChannelByName(Client client,String channelName) {
+    public void findChannelByName(Client client, String channelName) {
         Channel channelFound = null;
         for (Channel channel : active_channels) {
-            if (channelName.equals(channel.channelName)==true) {
+            if (channelName.equals(channel.channelName) == true) {
                 channelFound = channel;
                 break;
             }
         }
         if (channelFound == null) {
-            sendNotification("Channel not found!",client);
+            sendNotification("Channel not found!", client);
         } else {
             switchChannel(client, channelFound);
         }
     }
 
     public void switchChannel(Client client, Channel channel) {
+        if (client.activeChannel != null) {
+            client.activeChannel.channelUsers.remove(client);
+            sendChannelNotification(client.nickname + " left channel.",client.activeChannel);
+        }
         client.activeChannel = channel;
-        sendNotification("Active channel: "+channel.channelName,client);
+        client.activeChannel.channelUsers.add(client);
+        sendNotification("Active channel: " + channel.channelName, client);
+        sendChannelNotification(client.nickname + " joined channel.",client.activeChannel);
     }
 
     public String getChannelsList() {
         StringBuilder channelsList = new StringBuilder("");
         for (Channel channel : active_channels) {
-            channelsList.append(channel.channelName + " ");
+            channelsList.append(channel.channelName + ", ");
         }
         return String.valueOf(channelsList);
     }
@@ -62,14 +68,18 @@ public class ChatServer {
         }
     }
 
-    //TODO send to one client
     public void sendTo(String message, Client sender, Client receiver) {
-
+        receiver.receivedMessage(getTimestamp() + "[PM]" + sender.nickname + ": " + message);
     }
 
     public void sendNotification(String message, Client receiver) {
-        receiver.receivedMessage(getTimestamp() +" SERVER : " + message);
+        receiver.receivedMessage(getTimestamp() + " SERVER: " + message);
     }
+    public void sendChannelNotification(String message, Channel channel) {
+        for (Client client : channel.channelUsers) {
+                client.receivedMessage(getTimestamp()  + " SERVER: " + message);
+            }
+        }
 
     //TODO send to specific channel
     public void sendToChannel(String message, Client sender, Channel channel) {
