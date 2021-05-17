@@ -8,7 +8,7 @@ import java.util.Calendar;
 
 public class ChatServer {
     ServerSocket serversocket;
-    ArrayList<Client> clients = new ArrayList<>();
+    ArrayList<Client> active_clients = new ArrayList<>();
     ArrayList<Channel> active_channels = new ArrayList<>();
 
 
@@ -56,7 +56,7 @@ public class ChatServer {
         leftChannelNotification(client.activeChannel, client);
         client.activeChannel.channelUsers.remove(client);
         client.activeChannel = null;
-        this.clients.remove(client);
+        this.active_clients.remove(client);
         activeClientCount();
     }
 
@@ -75,7 +75,7 @@ public class ChatServer {
     }
 
     public void sendToAll(String message, Client sender) {
-        for (Client client : clients) {
+        for (Client client : active_clients) {
             if (client == sender) {
                 client.sendConfirmation(getTimestamp());
             } else {
@@ -109,7 +109,7 @@ public class ChatServer {
     }
 
     public void activeClientCount() {
-        System.out.println("Active clients: " + clients.size());
+        System.out.println("Active clients: " + active_clients.size());
     }
 
     public void run() {
@@ -118,7 +118,7 @@ public class ChatServer {
             try {
                 Socket socket = serversocket.accept();
                 System.out.println("Client connected!");
-                clients.add(new Client(socket, this));
+                active_clients.add(new Client(socket, this));
                 activeClientCount();
 
             } catch (IOException e) {

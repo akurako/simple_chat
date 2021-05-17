@@ -3,6 +3,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 class Client implements Runnable {
@@ -72,6 +73,14 @@ class Client implements Runnable {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NoSuchElementException e) {
+            try {
+                socket.close();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+            server.clientExit(this);
         }
+
     }
 }
