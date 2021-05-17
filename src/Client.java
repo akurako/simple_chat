@@ -11,6 +11,7 @@ class Client implements Runnable {
     PrintStream out;
     ChatServer server;
     String nickname;
+    Channel activeChannel;
 
     public Client(Socket socket, ChatServer server) {
         new Thread(this).start();
@@ -18,11 +19,12 @@ class Client implements Runnable {
         this.server = server;
     }
 
-    public void recievedMessage(String message){
+    public void receivedMessage(String message) {
         out.println(message);
     }
-    public void sendConfirmation(String timestamp){
-        out.println("Send by you at"+timestamp);
+
+    public void sendConfirmation(String timestamp) {
+        out.println("Send by you at" + timestamp);
     }
 
     public void run() {
@@ -32,13 +34,21 @@ class Client implements Runnable {
 
             in = new Scanner(is);
             out = new PrintStream(os);
-
+            String input;
             out.println("Enter your nickname?");
             this.nickname = in.nextLine();
-            out.println("Wellcome to the chat "+this.nickname);
-            String input = in.nextLine();
+            out.println("Welcome to the chat " + this.nickname);
+
+            while (activeChannel == null) {
+                out.println("Select channel " + server.getChannelsList());
+                server.findChannelByName(this, in.nextLine());
+            }
+            input = in.nextLine();
+//            switch (input) {
+//                case "!quit":
+//            }
             while (!input.equals("!quit")) {
-                server.sendAll(input,this);
+                server.sendToAll(input, this);
                 input = in.nextLine();
             }
             socket.close();
