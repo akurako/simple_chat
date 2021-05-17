@@ -23,6 +23,10 @@ class Client implements Runnable {
         out.println(message);
     }
 
+    public void clear() {
+        this.out.println("\033[H\033[2J");
+    }
+
     public void sendConfirmation(String timestamp) {
         out.println("Send by you at" + timestamp);
     }
@@ -43,15 +47,29 @@ class Client implements Runnable {
                 out.println("Select channel: " + server.getChannelsList());
                 server.findChannelByName(this, in.nextLine());
             }
-            input = in.nextLine();
-//            switch (input) {
-//                case "!quit":
-//            }
-            while (!input.equals("!quit")) {
-                server.sendToChannel(input, this,activeChannel);
+
+
+            while (activeChannel != null) {
                 input = in.nextLine();
+
+                switch (input) {
+                    case "!quit":
+                        server.clientExit(this);
+                        socket.close();
+                        break;
+
+                    case "!clear":
+                        clear();
+                        break;
+
+                    default:
+                        server.sendToChannel(input, this, activeChannel);
+                        break;
+
+
+                }
+
             }
-            socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

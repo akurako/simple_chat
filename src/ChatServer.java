@@ -36,12 +36,28 @@ public class ChatServer {
     public void switchChannel(Client client, Channel channel) {
         if (client.activeChannel != null) {
             client.activeChannel.channelUsers.remove(client);
-            sendChannelNotification(client.nickname + " left channel.",client.activeChannel);
+            leftChannelNotification(client.activeChannel, client);
         }
         client.activeChannel = channel;
         client.activeChannel.channelUsers.add(client);
         sendNotification("Active channel: " + channel.channelName, client);
-        sendChannelNotification(client.nickname + " joined channel.",client.activeChannel);
+        joinChannelNotification(channel, client);
+    }
+
+    public void leftChannelNotification(Channel channel, Client client) {
+        sendChannelNotification(client.nickname + " left channel.", channel);
+    }
+
+    public void joinChannelNotification(Channel channel, Client client) {
+        sendChannelNotification(client.nickname + " joined channel.", channel);
+    }
+
+    public void clientExit(Client client) {
+        leftChannelNotification(client.activeChannel, client);
+        client.activeChannel.channelUsers.remove(client);
+        client.activeChannel = null;
+        this.clients.remove(client);
+        activeClientCount();
     }
 
     public String getChannelsList() {
@@ -75,13 +91,13 @@ public class ChatServer {
     public void sendNotification(String message, Client receiver) {
         receiver.receivedMessage(getTimestamp() + " SERVER: " + message);
     }
+
     public void sendChannelNotification(String message, Channel channel) {
         for (Client client : channel.channelUsers) {
-                client.receivedMessage(getTimestamp()  + " SERVER: " + message);
-            }
+            client.receivedMessage(getTimestamp() + " SERVER: " + message);
         }
+    }
 
-    //TODO send to specific channel
     public void sendToChannel(String message, Client sender, Channel channel) {
         for (Client client : channel.channelUsers) {
             if (client == sender) {
@@ -92,6 +108,10 @@ public class ChatServer {
         }
     }
 
+    public void activeClientCount() {
+        System.out.println("Active clients: " + clients.size());
+    }
+
     public void run() {
         while (true) {
             System.out.println("Waiting...");
@@ -99,7 +119,7 @@ public class ChatServer {
                 Socket socket = serversocket.accept();
                 System.out.println("Client connected!");
                 clients.add(new Client(socket, this));
-                System.out.println("Active clients: " + clients.size());
+                activeClientCount();
 
             } catch (IOException e) {
                 e.printStackTrace();
