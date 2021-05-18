@@ -114,6 +114,17 @@ public class ChatServer {
         }
     }
 
+    public boolean uniqueNickname(String nickname, Client target){
+        boolean isUnique = true;
+        for (Client client : active_clients) {
+            if (nickname.equals(client.nickname)){
+                isUnique = false;
+                sendNotification("This nickname is already taken.",target);
+            }
+        }
+        return isUnique;
+    }
+
     public void activeClientCount() {
         System.out.println("Active clients: " + active_clients.size());
     }

@@ -32,6 +32,7 @@ class Client implements Runnable {
         out.println("Send by you at" + timestamp);
     }
 
+
     public void run() {
         try {
             InputStream is = socket.getInputStream();
@@ -40,8 +41,14 @@ class Client implements Runnable {
             in = new Scanner(is);
             out = new PrintStream(os);
             String input;
-            out.println("Enter your nickname?");
-            this.nickname = in.nextLine();
+            while (this.nickname == null) {
+                String checknickname;
+                out.println("Enter your nickname?");
+                checknickname = in.nextLine();
+                if (server.uniqueNickname(checknickname,this)== true){
+                    this.nickname = checknickname;
+                }
+            }
             out.println("Welcome to the chat " + this.nickname);
 
             while (activeChannel == null) {
