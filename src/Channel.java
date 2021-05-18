@@ -8,4 +8,8 @@ public class Channel {
         this.channelName = name;
     }
 
+    public String getChanelInfo() {
+        return this.channelName + " ["+channelUsers.size()+" active users.]";
+    }
+
 }

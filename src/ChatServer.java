@@ -33,6 +33,12 @@ public class ChatServer {
         }
     }
 
+    public void getActiveChannelsList(Client client){
+        for (Channel channel : active_channels) {
+            sendNotification(channel.getChanelInfo(),client);
+        }
+    }
+
     public void switchChannel(Client client, Channel channel) {
         if (client.activeChannel != null) {
             client.activeChannel.channelUsers.remove(client);
@@ -84,7 +90,7 @@ public class ChatServer {
         }
     }
 
-    public void sendTo(String message, Client sender, Client receiver) {
+    public void sendPM(String message, Client sender, Client receiver) {
         receiver.receivedMessage(getTimestamp() + "[PM]" + sender.nickname + ": " + message);
     }
 

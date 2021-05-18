@@ -54,20 +54,13 @@ class Client implements Runnable {
                 input = in.nextLine();
 
                 switch (input) {
-                    case "!quit":
+                    case "!quit" -> {
                         server.clientExit(this);
                         socket.close();
-                        break;
-
-                    case "!clear":
-                        clear();
-                        break;
-
-                    default:
-                        server.sendToChannel(input, this, activeChannel);
-                        break;
-
-
+                    }
+                    case "!clear" -> clear();
+                    case "!chanlist" -> server.getActiveChannelsList(this);
+                    default -> server.sendToChannel(input, this, activeChannel);
                 }
 
             }
