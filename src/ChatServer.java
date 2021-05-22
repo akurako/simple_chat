@@ -114,6 +114,20 @@ public class ChatServer {
         }
     }
 
+    public void getChannelUsers(Client target , Channel channel){
+        StringBuilder userList = new StringBuilder("");
+        for (Client client : target.activeChannel.channelUsers ) {
+            userList.append("["+client.nickname + "] ");
+        }
+        sendNotification(String.valueOf(userList), target);
+
+    }
+
+    public void getHelp(Client target){
+        sendNotification("List of available commands: \n !userlist - List all users on current channel\n" +
+                "!chanlist - List all active channels\n !clear - Clean terminal window",target);
+    }
+
     public boolean uniqueNickname(String nickname, Client target){
         boolean isUnique = true;
         for (Client client : active_clients) {
@@ -131,10 +145,8 @@ public class ChatServer {
 
     public void run() {
         while (true) {
-            System.out.println("Waiting...");
             try {
                 Socket socket = serversocket.accept();
-                System.out.println("Client connected!");
                 active_clients.add(new Client(socket, this));
                 activeClientCount();
 

@@ -27,6 +27,7 @@ class Client implements Runnable {
     public void clear() {
         this.out.println("\033[H\033[2J");
     }
+    public void doNothing(){}
 
     public void sendConfirmation(String timestamp) {
         out.println("Send by you at" + timestamp);
@@ -57,6 +58,8 @@ class Client implements Runnable {
             }
 
 
+
+
             while (activeChannel != null) {
                 input = in.nextLine();
 
@@ -65,8 +68,11 @@ class Client implements Runnable {
                         server.clientExit(this);
                         socket.close();
                     }
+                    case "" -> doNothing();
                     case "!clear" -> clear();
-                    case "!chanlist" -> server.getActiveChannelsList(this);
+                    case "!userlist" -> {server.getChannelUsers(this, this.activeChannel);}
+                    case "!chanlist" -> {server.getActiveChannelsList(this);}
+                    case "!help" -> {server.getHelp(this);}
                     default -> server.sendToChannel(input, this, activeChannel);
                 }
 
