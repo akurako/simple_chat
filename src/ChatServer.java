@@ -39,10 +39,15 @@ public class ChatServer {
         }
     }
 
+    public void leaveChannel(Client target){
+        target.activeChannel.channelUsers.remove(target);
+        leaveChannelNotification(target.activeChannel, target);
+    }
+
     public void switchChannel(Client client, Channel channel) {
         if (client.activeChannel != null) {
             client.activeChannel.channelUsers.remove(client);
-            leftChannelNotification(client.activeChannel, client);
+            leaveChannelNotification(client.activeChannel, client);
         }
         client.activeChannel = channel;
         client.activeChannel.channelUsers.add(client);
@@ -50,7 +55,7 @@ public class ChatServer {
         joinChannelNotification(channel, client);
     }
 
-    public void leftChannelNotification(Channel channel, Client client) {
+    public void leaveChannelNotification(Channel channel, Client client) {
         sendChannelNotification(client.nickname + " left channel.", channel);
     }
 
@@ -59,7 +64,7 @@ public class ChatServer {
     }
 
     public void clientExit(Client client) {
-        leftChannelNotification(client.activeChannel, client);
+        leaveChannelNotification(client.activeChannel, client);
         client.activeChannel.channelUsers.remove(client);
         client.activeChannel = null;
         this.active_clients.remove(client);
@@ -124,8 +129,8 @@ public class ChatServer {
     }
 
     public void getHelp(Client target){
-        sendNotification("List of available commands: \n !userlist - List all users on current channel\n" +
-                "!chanlist - List all active channels\n !clear - Clean terminal window",target);
+        sendNotification("List of available commands: \n!userlist - List all users on current channel\n" +
+                "!chanlist - List all active channels\n!chanleave - Leave current channel\n!clear - Clean terminal window",target);
     }
 
     public boolean uniqueNickname(String nickname, Client target){

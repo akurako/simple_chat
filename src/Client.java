@@ -27,7 +27,6 @@ class Client implements Runnable {
     public void clear() {
         this.out.println("\033[H\033[2J");
     }
-    public void doNothing(){}
 
     public void sendConfirmation(String timestamp) {
         out.println("Send by you at" + timestamp);
@@ -42,50 +41,56 @@ class Client implements Runnable {
             in = new Scanner(is);
             out = new PrintStream(os);
             String input;
-            while (this.nickname == null) {
-                String checknickname;
-                out.println("Enter your nickname?");
-                checknickname = in.nextLine();
-                if (server.uniqueNickname(checknickname,this)== true){
-                    this.nickname = checknickname;
-                }
-            }
-            out.println("Welcome to the chat " + this.nickname);
-
-            while (activeChannel == null) {
-                out.println("Select channel: " + server.getChannelsList());
-                server.findChannelByName(this, in.nextLine());
-            }
-
-
-
-
-            while (activeChannel != null) {
-                input = in.nextLine();
-
-                switch (input) {
-                    case "!quit" -> {
-                        server.clientExit(this);
-                        socket.close();
+            while (true) {
+                while (this.nickname == null) {
+                    String checknickname;
+                    out.println("Enter your nickname?");
+                    checknickname = in.nextLine();
+                    if (server.uniqueNickname(checknickname, this) == true) {
+                        this.nickname = checknickname;
                     }
-                    case "" -> doNothing();
-                    case "!clear" -> clear();
-                    case "!userlist" -> {server.getChannelUsers(this, this.activeChannel);}
-                    case "!chanlist" -> {server.getActiveChannelsList(this);}
-                    case "!help" -> {server.getHelp(this);}
-                    default -> server.sendToChannel(input, this, activeChannel);
+                }
+                out.println("Welcome to the chat " + this.nickname);
+
+                while (this.activeChannel == null) {
+                    out.println("Select channel: " + server.getChannelsList());
+                    server.findChannelByName(this, in.nextLine());
                 }
 
+
+                while (activeChannel != null) {
+                    input = in.nextLine();
+
+                    switch (input) {
+                        case "!quit" -> {
+                            server.clientExit(this);
+                            socket.close();
+                        }
+                        case "" -> {
+                        }
+                        case "!chanleave" -> {
+                            server.leaveChannel(this);
+                            this.activeChannel = null;
+                        }
+                        case "!clear" -> clear();
+                        case "!userlist" -> {
+                            server.getChannelUsers(this, this.activeChannel);
+                        }
+                        case "!chanlist" -> {
+                            server.getActiveChannelsList(this);
+                        }
+                        case "!help" -> {
+                            server.getHelp(this);
+                        }
+                        default -> server.sendToChannel(input, this, activeChannel);
+                    }
+
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NoSuchElementException e) {
-            try {
-                socket.close();
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-            server.clientExit(this);
+            e.printStackTrace();
         }
 
     }
