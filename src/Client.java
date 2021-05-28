@@ -18,7 +18,8 @@ class Client implements Runnable {
     }
 
     public void receivedMessage(String message) {
-        out.println(message+"\r\n");
+        out.print(message);
+        printLineSeparator();
     }
 
     public void clear() {
@@ -26,7 +27,20 @@ class Client implements Runnable {
     }
 
     public void sendConfirmation(String timestamp) {
-        out.print("Send by you at" + timestamp+"\r\n");
+        out.print("Send by you at" + timestamp);
+        printLineSeparator();
+    }
+
+    public void printLineSeparator(){
+        out.print("\r\n");
+    }
+
+    public void closeConnection(){
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -41,16 +55,19 @@ class Client implements Runnable {
             while (true) {
                 while (this.nickname == null) {
                     String checknickname;
-                    out.println("Enter your nickname?");
+                    out.print("Enter your nickname?");
+                    printLineSeparator();
                     checknickname = in.nextLine();
                     if (server.uniqueNickname(checknickname, this) == true) {
                         this.nickname = checknickname;
                     }
                 }
-                out.println("Welcome to the chat " + this.nickname);
+                out.print("Welcome to the chat " + this.nickname);
+                printLineSeparator();
 
                 while (this.activeChannel == null) {
-                    out.println("Select channel: " + server.getChannelsList());
+                    out.print("Select channel: " + server.getChannelsList());
+                    printLineSeparator();
                     server.findChannelByName(this, in.nextLine());
                 }
 
@@ -61,7 +78,7 @@ class Client implements Runnable {
                     switch (input) {
                         case "!quit" -> {
                             server.clientExit(this);
-                            socket.close();
+                            closeConnection();
                         }
                         case "" -> {
                         }
@@ -88,12 +105,7 @@ class Client implements Runnable {
             e.printStackTrace();
         } catch (NoSuchElementException e) {
             server.clientExit(this);
-            try {
-                socket.close();
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-            e.printStackTrace();
+            closeConnection();
         }
 
     }
