@@ -1,7 +1,4 @@
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -21,7 +18,7 @@ class Client implements Runnable {
     }
 
     public void receivedMessage(String message) {
-        out.println(message);
+        out.println(message+"\r\n");
     }
 
     public void clear() {
@@ -29,7 +26,7 @@ class Client implements Runnable {
     }
 
     public void sendConfirmation(String timestamp) {
-        out.println("Send by you at" + timestamp);
+        out.print("Send by you at" + timestamp+"\r\n");
     }
 
 
@@ -90,6 +87,12 @@ class Client implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NoSuchElementException e) {
+            server.clientExit(this);
+            try {
+                socket.close();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
             e.printStackTrace();
         }
 

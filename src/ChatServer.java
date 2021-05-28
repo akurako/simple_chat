@@ -72,7 +72,7 @@ public class ChatServer {
     }
 
     public String getChannelsList() {
-        StringBuilder channelsList = new StringBuilder("");
+        StringBuilder channelsList = new StringBuilder();
         for (Channel channel : active_channels) {
             channelsList.append(channel.channelName + ", ");
         }
@@ -120,7 +120,7 @@ public class ChatServer {
     }
 
     public void getChannelUsers(Client target , Channel channel){
-        StringBuilder userList = new StringBuilder("");
+        StringBuilder userList = new StringBuilder();
         for (Client client : target.activeChannel.channelUsers ) {
             userList.append("["+client.nickname + "] ");
         }
@@ -162,6 +162,7 @@ public class ChatServer {
     }
 
     public static void main(String[] args) throws IOException {
+        System.setProperty("line.separator", "\n");
         new ChatServer().run();
 
 
