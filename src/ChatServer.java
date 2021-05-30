@@ -14,18 +14,39 @@ public class ChatServer {
 
     public ChatServer() throws IOException {
         serversocket = new ServerSocket(1234);
-        active_channels.add(new Channel("#Main"));
-        active_channels.add(new Channel("#2nd"));
+        //active_channels.add(new Channel("#Main"));
+        //active_channels.add(new Channel("#2nd"));
     }
 
-    public void findChannelByName(Client client, String channelName) {
-        Channel channelFound = null;
+    //CHANNEL METHODS -------------------------------------------------------------------------------------------------
+
+    public void getChannelUsers(Client target, Channel channel) {
+        StringBuilder userList = new StringBuilder();
+        for (Client client : channel.channelUsers) {
+            userList.append("[" + client.nickname + "] ");
+        }
+        sendNotification(String.valueOf(userList), target);
+
+    }
+
+    public void createChannel(String name, Client client) {
+        boolean channelExists = false;
         for (Channel channel : active_channels) {
-            if (channelName.equals(channel.channelName) == true) {
-                channelFound = channel;
+            if (name.equals(channel.channelName)) {
+                sendNotification("Channel with name " + name + " already exists.", client);
+                channelExists = true;
                 break;
             }
         }
+        if (channelExists == false) {
+            active_channels.add(new Channel(name));
+            sendNotification("Channel successfully created.", client);
+            joinChannelByName(client, name);
+        }
+    }
+
+    public void joinChannelByName(Client client, String channelName) {
+        Channel channelFound = findChannelByName(client, channelName);
         if (channelFound == null) {
             sendNotification("Channel not found!", client);
         } else {
@@ -33,13 +54,29 @@ public class ChatServer {
         }
     }
 
-    public void getActiveChannelsList(Client client){
+
+    public Channel findChannelByName(Client client, String channelName) {
+        Channel channelFound = null;
         for (Channel channel : active_channels) {
-            sendNotification(channel.getChanelInfo(),client);
+            if (channelName.equals(channel.channelName) == true) {
+                channelFound = channel;
+                break;
+            }
+        }
+        return channelFound;
+    }
+
+    public void getActiveChannelsList(Client client) {
+        if (active_channels.size() == 0) {
+            sendNotification("There is no active channels you can create one using !chancreate #channel_name", client);
+        } else {
+            for (Channel channel : active_channels) {
+                sendNotification(channel.getChanelInfo(), client);
+            }
         }
     }
 
-    public void leaveChannel(Client target){
+    public void leaveChannel(Client target) {
         target.activeChannel.channelUsers.remove(target);
         leaveChannelNotification(target.activeChannel, target);
     }
@@ -63,13 +100,6 @@ public class ChatServer {
         sendChannelNotification(client.nickname + " joined channel.", channel);
     }
 
-    public void clientExit(Client client) {
-        leaveChannelNotification(client.activeChannel, client);
-        client.activeChannel.channelUsers.remove(client);
-        client.activeChannel = null;
-        this.active_clients.remove(client);
-        activeClientCount();
-    }
 
     public String getChannelsList() {
         StringBuilder channelsList = new StringBuilder();
@@ -79,12 +109,8 @@ public class ChatServer {
         return String.valueOf(channelsList);
     }
 
-    public String getTimestamp() {
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat timestamp = new SimpleDateFormat("HH:mm:ss");
-        return "[" + timestamp.format(calendar.getTime()) + "]";
-    }
 
+    //SEND METHODS
     public void sendToAll(String message, Client sender) {
         for (Client client : active_clients) {
             if (client == sender) {
@@ -94,6 +120,7 @@ public class ChatServer {
             }
         }
     }
+
 
     public void sendPM(String message, Client sender, Client receiver) {
         receiver.receivedMessage(getTimestamp() + "[PM]" + sender.nickname + ": " + message);
@@ -119,34 +146,48 @@ public class ChatServer {
         }
     }
 
-    public void getChannelUsers(Client target , Channel channel){
-        StringBuilder userList = new StringBuilder();
-        for (Client client : target.activeChannel.channelUsers ) {
-            userList.append("["+client.nickname + "] ");
-        }
-        sendNotification(String.valueOf(userList), target);
-
+    //USER METHODS ----------------------------------------------------------------------------------------------------
+    public void clientExit(Client client) {
+        leaveChannelNotification(client.activeChannel, client);
+        client.activeChannel.channelUsers.remove(client);
+        client.activeChannel = null;
+        this.active_clients.remove(client);
+        activeClientCount();
     }
 
-    public void getHelp(Client target){
-        sendNotification("List of available commands: \n!userlist - List all users on current channel\n" +
-                "!chanlist - List all active channels\n!chanleave - Leave current channel\n!clear - Clean terminal window",target);
+    public void getHelp(Client target) {
+        sendNotification(" List of available commands:\r\n" +
+                "                !userlist - List all users on current channel\r\n" +
+                "                !chanlist - List all active channels\r\n" +
+                "                !chanleave - Leave current channel\r\n" +
+                "                !chancreate - Create a new channel\r\n" +
+                "                !clear - Clean terminal", target);
     }
 
-    public boolean uniqueNickname(String nickname, Client target){
+    public boolean uniqueNickname(String nickname, Client target) {
         boolean isUnique = true;
         for (Client client : active_clients) {
-            if (nickname.equals(client.nickname)){
+            if (nickname.equals(client.nickname)) {
                 isUnique = false;
-                sendNotification("This nickname is already taken.",target);
+                sendNotification("This nickname is already taken.", target);
             }
         }
         return isUnique;
     }
 
+    //SERVER SIDE METHODS ---------------------------------------------------------------------------------------------
+
+    public String getTimestamp() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat timestamp = new SimpleDateFormat("HH:mm:ss");
+        return "[" + timestamp.format(calendar.getTime()) + "]";
+    }
+
     public void activeClientCount() {
         System.out.println("Active clients: " + active_clients.size());
     }
+
+    // RUN PSVM -------------------------------------------------------------------------------------------------------
 
     public void run() {
         while (true) {
@@ -162,7 +203,8 @@ public class ChatServer {
     }
 
     public static void main(String[] args) throws IOException {
-        System.setProperty("line.separator", "\n");
+        ServerScanner serverScanner = new ServerScanner();
+        new Thread(serverScanner).start();
         new ChatServer().run();
 
 

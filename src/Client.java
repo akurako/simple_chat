@@ -10,11 +10,14 @@ class Client implements Runnable {
     ChatServer server;
     String nickname;
     Channel activeChannel;
+    InputStream is;
+    OutputStream os;
 
-    public Client(Socket socket, ChatServer server) {
+    public Client(Socket socket, ChatServer server) throws IOException {
         new Thread(this).start();
         this.socket = socket;
         this.server = server;
+
     }
 
     public void receivedMessage(String message) {
@@ -31,11 +34,27 @@ class Client implements Runnable {
         printLineSeparator();
     }
 
-    public void printLineSeparator(){
+    public void nicknameChangeDialog() {
+        String checknickname;
+        this.out.print("Enter your nickname?");
+        printLineSeparator();
+        checknickname = in.nextLine();
+        if (server.uniqueNickname(checknickname, this) == true) {
+            this.nickname = checknickname;
+        }
+    }
+
+    public void channelCreateDialog() {
+        out.print("Choose a name for a new channel starting with #");
+        printLineSeparator();
+        server.createChannel(in.nextLine(), this);
+    }
+
+    public void printLineSeparator() {
         out.print("\r\n");
     }
 
-    public void closeConnection(){
+    public void closeConnection() {
         try {
             socket.close();
         } catch (IOException e) {
@@ -46,29 +65,26 @@ class Client implements Runnable {
 
     public void run() {
         try {
-            InputStream is = socket.getInputStream();
-            OutputStream os = socket.getOutputStream();
-
+            is = socket.getInputStream();
+            os = socket.getOutputStream();
             in = new Scanner(is);
             out = new PrintStream(os);
             String input;
             while (true) {
                 while (this.nickname == null) {
-                    String checknickname;
-                    out.print("Enter your nickname?");
-                    printLineSeparator();
-                    checknickname = in.nextLine();
-                    if (server.uniqueNickname(checknickname, this) == true) {
-                        this.nickname = checknickname;
-                    }
+                    nicknameChangeDialog();
                 }
                 out.print("Welcome to the chat " + this.nickname);
                 printLineSeparator();
 
                 while (this.activeChannel == null) {
-                    out.print("Select channel: " + server.getChannelsList());
-                    printLineSeparator();
-                    server.findChannelByName(this, in.nextLine());
+                    if (server.active_channels.size() == 0) {
+                        channelCreateDialog();
+                    } else {
+                        out.print("Select channel: " + server.getChannelsList());
+                        printLineSeparator();
+                        server.joinChannelByName(this, in.nextLine());
+                    }
                 }
 
 
@@ -96,16 +112,19 @@ class Client implements Runnable {
                         case "!help" -> {
                             server.getHelp(this);
                         }
+                        case "!chancreate" -> {
+                            channelCreateDialog();
+                        }
                         default -> server.sendToChannel(input, this, activeChannel);
                     }
 
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (NoSuchElementException e) {
             server.clientExit(this);
             closeConnection();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     }
